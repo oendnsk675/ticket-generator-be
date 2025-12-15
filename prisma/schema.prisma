@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model users {
+  id            Int       @id @default(autoincrement())
+  name          String    @db.VarChar(100)
+  email         String    @unique @db.VarChar(100)
+  password      String    @db.VarChar(255)
+  role          role      @default(USER)
+  token         String?   @db.Text
+  created_at    DateTime  @default(now()) @db.Timestamp(0)
+  updated_at    DateTime  @updatedAt @db.Timestamp(0)
+
+  // Relations
+  batches   batches[]
+  scan_logs scan_logs[]
+}
+
+model batches {
+  id            String    @id @db.VarChar(50)
+  batch_name    String    @db.VarChar(255)
+  total_tickets Int
+  created_by    Int
+  created_at    DateTime  @default(now()) @db.Timestamp(0)
+
+  // Relations
+  creator users    @relation(fields: [created_by], references: [id])
+  tickets tickets[]
+}
+
+model tickets {
+  id         String    @id @db.VarChar(50)
+  batch_id   String    @db.VarChar(50)
+  qr_hash    String    @db.VarChar(255)
+  is_scanned Boolean   @default(false)
+  scanned_at DateTime? @db.Timestamp(0)
+
+  // Relations
+  batch     batches    @relation(fields: [batch_id], references: [id])
+  scan_logs scan_logs[]
+}
+
+model scan_logs {
+  id          Int           @id @default(autoincrement())
+  ticket_id   String        @db.VarChar(50)
+  operator_id Int
+  status      status_ticket @default(UNUSED)
+  timestamp   DateTime      @default(now()) @db.Timestamp(0)
+
+  // Relations
+  ticket   tickets @relation(fields: [ticket_id], references: [id])
+  operator users   @relation(fields: [operator_id], references: [id])
+}
+
+enum status_ticket {
+  USED
+  UNUSED
+  EXPIRED
+  CANCELLED
+}
+
+enum role {
+  ADMIN
+  OPERATOR
+  USER
+}
