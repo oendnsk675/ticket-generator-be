@@ -4,21 +4,27 @@ import * as argon2 from "argon2";
 import { generateToken } from "../../src/utils/jwt";
 
 
+export const TEST_EMAIL = "test-example@gmail.com"
 export class userTest {
     static async delete() {
-        await prisma.users.deleteMany({});
+
+        await prisma.users.deleteMany({
+            where: {
+                email: TEST_EMAIL
+            }
+        });
     };
 
     static async create() {
         const newUser = await prisma.users.create({
             data: {
                 name: "nana",
-                email: "example@gmail.com",
+                email: "test-example@gmail.com",
                 password: await argon2.hash("ErzaNaN@_77", {
                     type: argon2.argon2id,
                     hashLength: 64
                 }),
-                role: "USER",
+                role: "ADMIN",
             }
         });
         

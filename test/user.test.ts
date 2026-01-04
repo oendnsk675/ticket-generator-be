@@ -1,9 +1,8 @@
-console.log(">>> TEST DB URL:", process.env.DATABASE_URL);
 import supertest from "supertest";
 import { describe, it, expect, afterEach, beforeEach } from "vitest";
 import { app } from "../src/app";
 import { logger } from "../src/utils/logging";
-import { userTest } from "./helper/user-test";
+import { userTest, TEST_EMAIL } from "./helper/user-test";
 
 describe("POST /auth/register", () => {
     afterEach(async () => {
@@ -29,14 +28,14 @@ describe("POST /auth/register", () => {
             .post("/auth/register")
             .send({
                 name: "nana",
-                email: "example@gmail.com",
+                email: TEST_EMAIL,
                 password: "ErzaNaN@_77"
             })
 
         logger.debug(response.body);
         expect(response.status).toBe(200);
         expect(response.body.data.name).toBe("nana");
-        expect(response.body.data.email).toBe("example@gmail.com");
+        expect(response.body.data.email).toBe(TEST_EMAIL);
     });
 });
 
@@ -53,14 +52,14 @@ describe("POST /auth/login", () => {
         const response = await supertest(app)
             .post("/auth/login")
             .send({
-                email: "example@gmail.com",
+                email: TEST_EMAIL,
                 password: "ErzaNaN@_77"
             })
 
         logger.debug(response.body);
         expect(response.status).toBe(200);
         expect(response.body.data.user.name).toBe("nana");
-        expect(response.body.data.user.email).toBe("example@gmail.com");
+        expect(response.body.data.user.email).toBe(TEST_EMAIL);
         expect(response.body.data.token).toBeDefined();
     });
 
@@ -68,7 +67,7 @@ describe("POST /auth/login", () => {
         const response = await supertest(app)
             .post("/auth/login")
             .send({
-                email: "testing@gmail.com",
+                email: "admin@admin.com",
                 password: "ErzaNaN@_77"
             })
 
@@ -81,7 +80,7 @@ describe("POST /auth/login", () => {
         const response = await supertest(app)
             .post("/auth/login")
             .send({
-                email: "testing@gmail.com",
+                email: TEST_EMAIL,
                 password: "ErzaNaN@_22"
             })
 
@@ -95,12 +94,8 @@ describe("GET /auth/me", () => {
     let token: string;
 
     beforeEach(async () => {
-        // console.log("BEFORE EACH START");
         await userTest.delete();
-        // console.log("BEFORE EACH DONE");
-
         token = await userTest.create();
-        // console.log("CREATED DONE");
     });
 
     afterEach(async () => {
@@ -116,7 +111,7 @@ describe("GET /auth/me", () => {
         logger.debug(response.body);
         expect(response.status).toBe(200);
         expect(response.body.data.name).toBe("nana");
-        expect(response.body.data.email).toBe("example@gmail.com");
+        expect(response.body.data.email).toBe(TEST_EMAIL);
     });
 
     it("should reject get user if token is invalid", async () => {
